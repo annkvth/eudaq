@@ -44,6 +44,12 @@ add_executable(${EXE_CLI_READER} src/euCliReader.cxx)
 target_link_libraries(${EXE_CLI_READER} ${EUDAQ_CORE_LIBRARY} ${EUDAQ_THREADS_LIB})
 list(APPEND INSTALL_TARGETS ${EXE_CLI_READER})
 
+set(EXE_CMS_READER cmsTriggerReader)
+add_executable(${EXE_CMS_READER} src/cmsTriggerReader.cxx)
+target_link_libraries(${EXE_CMS_READER} ${EUDAQ_CORE_LIBRARY} ${EUDAQ_THREADS_LIB})
+list(APPEND INSTALL_TARGETS ${EXE_CMS_READER})
+
+
 install(TARGETS ${INSTALL_TARGETS}
   DESTINATION bin
   LIBRARY DESTINATION lib

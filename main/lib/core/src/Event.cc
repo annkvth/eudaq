@@ -154,6 +154,24 @@ namespace eudaq {
     os << std::string(offset, ' ') << "</Event>\n";
   }
   
+void Event::PrintTable(std::ostream & os, bool subEv) const{
+	auto ow = [&](int width, auto s, bool space=true){
+		os << std::right << std::setw(width) << s;
+		if (space)	
+			os <<  " ";
+	};
+	if (subEv)
+		os << "(";	
+	ow(8, m_ev_n); ow(10, m_stm_n); ow(10, m_dspt); ow(8, m_tg_n);
+	if (subEv)
+		os << ") ";
+	if(!m_sub_events.empty())
+		for(auto &subev: m_sub_events)
+			subev->PrintTable(os, true);
+	if ( ! subEv )
+		os << std::endl;
+	}
+
   std::string Event::GetTag(const std::string & name, const std::string & def) const {
     auto i = m_tags.find(name);
     if (i == m_tags.end()) return def;
