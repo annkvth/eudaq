@@ -121,6 +121,15 @@ void HitmapCollection::registerPlane(const SimpleStandardPlane &p) {
     _mon->getOnlineMon()->registerHisto(
         tree, getHitmapHistos(p.getName(), p.getID())->getHitmapHisto(), "COLZ",
         0);
+   
+    if ( ! p.is_MIMOSA26) { 
+        sprintf(tree, "Summary/%s %i - RawHitmap", p.getName().c_str(), p.getID());
+        _mon->getOnlineMon()->registerTreeItem(tree);
+        _mon->getOnlineMon()->registerHisto(
+            tree, getHitmapHistos(p.getName(), p.getID())->getHitmapHisto(), "COLZ",
+            0);
+	_mon->getOnlineMon()->addTreeItemSummary("Summary", tree);
+	}
 
     sprintf(folder, "%s", p.getName().c_str());
 #ifdef DEBUG
@@ -151,6 +160,12 @@ void HitmapCollection::registerPlane(const SimpleStandardPlane &p) {
       _mon->getOnlineMon()->registerTreeItem(tree);
       _mon->getOnlineMon()->registerHisto(
           tree, getHitmapHistos(p.getName(), p.getID())->getLVL1Histo());
+      
+      sprintf(tree, "Summary/%s %i - LVL1", p.getName().c_str(), p.getID());
+      _mon->getOnlineMon()->registerTreeItem(tree);
+      _mon->getOnlineMon()->registerHisto(
+          tree, getHitmapHistos(p.getName(), p.getID())->getLVL1Histo());
+	_mon->getOnlineMon()->addTreeItemSummary("Summary", tree);
 
       sprintf(tree, "%s/Sensor %i/LVL1Cluster", p.getName().c_str(), p.getID());
       _mon->getOnlineMon()->registerTreeItem(tree);
@@ -167,10 +182,22 @@ void HitmapCollection::registerPlane(const SimpleStandardPlane &p) {
       _mon->getOnlineMon()->registerHisto(
           tree, getHitmapHistos(p.getName(), p.getID())->getTOTSingleHisto());
 
+      sprintf(tree, "Summary/%s %i - singleToT", p.getName().c_str(), p.getID());
+      _mon->getOnlineMon()->registerTreeItem(tree);
+      _mon->getOnlineMon()->registerHisto(
+          tree, getHitmapHistos(p.getName(), p.getID())->getTOTSingleHisto());
+	_mon->getOnlineMon()->addTreeItemSummary("Summary", tree);
+
       sprintf(tree, "%s/Sensor %i/ClusterTOT", p.getName().c_str(), p.getID());
       _mon->getOnlineMon()->registerTreeItem(tree);
       _mon->getOnlineMon()->registerHisto(
           tree, getHitmapHistos(p.getName(), p.getID())->getTOTClusterHisto());
+
+      sprintf(tree, "Summary/Sensor %i_clusterToTi", p.getID());
+      _mon->getOnlineMon()->registerTreeItem(tree);
+      _mon->getOnlineMon()->registerHisto(
+          tree, getHitmapHistos(p.getName(), p.getID())->getTOTClusterHisto());
+	_mon->getOnlineMon()->addTreeItemSummary("Summary", tree);
 
       sprintf(tree, "%s/Sensor %i/ClusterWidthX", p.getName().c_str(),
               p.getID());
