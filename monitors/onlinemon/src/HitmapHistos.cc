@@ -84,11 +84,11 @@ HitmapHistos::HitmapHistos(SimpleStandardPlane p, RootMonitor *mon)
     sprintf(out, "%s %i TOT Single Pixels", _sensor.c_str(), _id);
     sprintf(out2, "h_totsingle_%s_%i", _sensor.c_str(), _id);
     if (p.is_USBPIXI4 || p.is_RD53A || p.is_RD53B) {
-      _totSingle = new TH1I(out2, out, 16, 0, 15);
+      _totSingle = new TH1I(out2, out, 16, 0, 16);
     } else if (p.is_DEPFET) {
       _totSingle = new TH1I(out2, out, 255, -127, 127);
     } else {
-      _totSingle = new TH1I(out2, out, 256, 0, 255);
+      _totSingle = new TH1I(out2, out, 256, 0, 256);
 #ifdef EUDAQ_LIB_ROOT6
       _totSingle->SetCanExtend(TH1::kAllAxes);
 #else
@@ -99,9 +99,9 @@ HitmapHistos::HitmapHistos(SimpleStandardPlane p, RootMonitor *mon)
     sprintf(out, "%s %i TOT Clusters", _sensor.c_str(), _id);
     sprintf(out2, "h_totcluster_%s_%i", _sensor.c_str(), _id);
     if (p.is_USBPIXI4 || p.is_RD53A || p.is_RD53B)
-      _totCluster = new TH1I(out2, out, 80, 0, 79);
+      _totCluster = new TH1I(out2, out, 80, 0, 80);
     else
-      _totCluster = new TH1I(out2, out, 256, 0, 255);
+      _totCluster = new TH1I(out2, out, 256, 0, 256);
 
     sprintf(out, "%s %i Hitoccupancy", _sensor.c_str(), _id);
     sprintf(out2, "h_hitocc%s_%i", _sensor.c_str(), _id);
@@ -131,16 +131,16 @@ HitmapHistos::HitmapHistos(SimpleStandardPlane p, RootMonitor *mon)
 
     sprintf(out, "%s %i Number of Clusters", _sensor.c_str(), _id);
     sprintf(out2, "h_nClusters_%s_%i", _sensor.c_str(), _id);
-    _nClusters = new TH1I(out2, out, 500, 0, 99);
+    _nClusters = new TH1I(out2, out, 500, 0, 100);
     SetHistoAxisLabelx(_nClusters, "n_{Clusters}");
 
     sprintf(out, "%s %i Clustersize in X", _sensor.c_str(), _id);
     sprintf(out2, "h_clustersizeX_%s_%i", _sensor.c_str(), _id);
-    _clusterXWidth = new TH1I(out2, out, 20, 0, 19);
+    _clusterXWidth = new TH1I(out2, out, 20, 0, 20);
 
     sprintf(out, "%s %i Clustersize in Y", _sensor.c_str(), _id);
     sprintf(out2, "h_clustersizeY_%s_%i", _sensor.c_str(), _id);
-    _clusterYWidth = new TH1I(out2, out, 20, 0, 19);
+    _clusterYWidth = new TH1I(out2, out, 20, 0, 20);
 
     sprintf(out, "%s %i Hitmap Sections", _sensor.c_str(), _id);
     sprintf(out2, "h_hitmapSections_%s_%i", _sensor.c_str(), _id);
