@@ -99,6 +99,8 @@ OnlineMonWindow::OnlineMonWindow(const TGWindow *p, UInt_t w, UInt_t h)
     button_about = tb->AddButton(Hfrm_left, &icondata_about, 10);
     button_about->Connect("Clicked()", "OnlineMonWindow", this, "About()");
   }
+
+  setAutoReset(true);
   /*------*/
   nen_reduce =
       new TGNumberEntry(Hfrm_left, 1, 3, -1, TGNumberFormat::kNESInteger,
