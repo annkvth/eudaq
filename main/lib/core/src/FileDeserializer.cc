@@ -135,6 +135,7 @@ namespace eudaq {
           break;
 	uint32_t id;
 	PreRead(id);
+	if (!id) std::cout<<"v1: Event with it=0 found" <<std::endl;
 	ev = Factory<Event>::Create<Deserializer&>(id, *this);
       }
     } else {
@@ -146,6 +147,7 @@ namespace eudaq {
       }
       uint32_t id;
       buf.PreRead(id);
+	if (!id) std::cout<<"v2: Event with it=0 found" <<std::endl;
       ev = Factory<Event>::Create<Deserializer&>(id, buf);
     }
     return true;
