@@ -16,6 +16,7 @@ int main(int /*argc*/, const char **argv) {
   eudaq::Option<uint32_t> timestamph(op, "TS", "timestamphigh", 0, "uint32_t", "timestamp high");
   eudaq::OptionFlag stat(op, "s", "statistics", "enable print of statistics");
   eudaq::OptionFlag stdev(op, "std", "stdevent", "enable converter of StdEvent");
+  eudaq::OptionFlag dumpev(op, "dump", "dumpevent", "dump event data in hex");
 
   op.Parse(argv);
   std::string infile_path = file_input.Value();
@@ -24,6 +25,7 @@ int main(int /*argc*/, const char **argv) {
     type_in = "native";
 
   bool stdev_v = stdev.Value();
+  bool dumpev_v = dumpev.Value();
 
 
   uint32_t eventl_v = eventl.Value();
@@ -100,6 +102,31 @@ int main(int /*argc*/, const char **argv) {
         eudaq::StdEventConverter::Convert(ev, evstd, config_spc);
         std::cout<< ">>>>>"<< evstd->NumPlanes() <<"<<<<"<<std::endl;
       }
+      if(dumpev_v){
+	auto dumpevent = [](std::shared_ptr<const eudaq::Event> ev){
+		for (const auto bnum: ev->GetBlockNumList()){
+			const auto datablock = ev->GetBlock(bnum);
+			size_t wnum=0;
+			std::cout << std::hex;
+			for (const auto word: datablock) { 
+				wnum++;
+				std::cout << std::hex << unsigned(word);
+				if (! wnum%16){
+					std::cout << "\n";
+					continue;
+					} 
+				else if(! wnum%2)
+					std::cout << " " << std::hex;
+				}
+			std::cout << std::dec << std::endl;
+			}
+		};
+	dumpevent(ev);
+	for(auto &subev: ev->GetSubEvents()){
+		std::cout << "SUBEVENT " << subev->GetDescription() << "\n";
+		dumpevent(subev);
+		}	
+	}
     }
 
     event_count ++;
