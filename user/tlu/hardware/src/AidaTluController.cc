@@ -131,6 +131,25 @@ namespace tlu {
     }
   }
 
+ void AidaTluController::enableHDMIPower(unsigned int hdmiN, bool enable, uint8_t verbose){
+        const unsigned int bank = 1;
+        unsigned char oldStatus, mask, newStatus;
+
+	hdmiN -= 1;
+	
+        oldStatus= m_IOexpander2.getOutputs(bank, false);
+        mask = 1 << hdmiN;
+        newStatus = oldStatus & (~mask);
+        if (enable)
+                newStatus |= mask;
+        
+      if (verbose){
+        std::cout << std::hex << "\tOLD " << (int)oldStatus << "\tMask " << (int)mask << "\tNEW " << (int)newStatus << std::dec << std::endl;
+      }
+      m_IOexpander2.setOutputs(bank, newStatus, verbose);
+
+}
+
   uint32_t AidaTluController::GetBoardID() {
     // Return the board unique ID. The ID is generally comprised of
     // 6 characters (48 bits) but the first 3 are manufacturer specific so, in order to have just

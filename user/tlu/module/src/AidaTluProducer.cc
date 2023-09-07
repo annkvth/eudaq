@@ -220,6 +220,12 @@ void AidaTluProducer::DoConfigure() {
     m_tlu->configureHDMI(3, conf->Get("HDMI3_set", 0b0001), m_verbose);
     m_tlu->configureHDMI(4, conf->Get("HDMI4_set", 0b0001), m_verbose);
 
+    // Enable HDMI power 
+    m_tlu->enableHDMIPower(1, 1, m_verbose);
+    m_tlu->enableHDMIPower(2, 1, m_verbose);
+    m_tlu->enableHDMIPower(3, 1, m_verbose);
+    m_tlu->enableHDMIPower(4, 1, m_verbose);
+
     // Select clock to HDMI
     m_tlu->SetDutClkSrc(1, conf->Get("HDMI1_clk", 1), m_verbose);
     m_tlu->SetDutClkSrc(2, conf->Get("HDMI2_clk", 1), m_verbose);

@@ -29,6 +29,7 @@ namespace tlu {
     void compareWriteRead(uint32_t written, uint32_t readback, uint32_t mask, const std::string & regName);
     void configureHDMI(unsigned int hdmiN, unsigned int enable, uint8_t verbose);
     void enableHDMI(unsigned int dutN, bool enable, uint8_t verbose);
+    void enableHDMIPower(unsigned int hdmiN, bool enable, uint8_t verbose);
     uint32_t PackBits(std::vector< unsigned int>  rawValues);
     void SetSerdesRst(int value) { SetWRegister("triggerInputs.SerdesRstW",value); };
     void SetInternalTriggerInterval(int value) { SetWRegister("triggerLogic.InternalTriggerIntervalW",value); };
