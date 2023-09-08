@@ -308,6 +308,7 @@ void AidaTluProducer::DoConfigure() {
     m_tlu->SetEnableRecordData( (uint32_t)(conf->Get("EnableRecordData", 1)) );
     m_tlu->GetEventFifoCSR();
     m_tlu->GetEventFifoFillLevel();
+    m_tlu->ResetCounters();
   }
 }
 
