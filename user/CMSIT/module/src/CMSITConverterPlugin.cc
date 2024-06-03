@@ -50,23 +50,23 @@ void TheConverter::ConverterForQuad(int& row, int& col, const int& chipIdMod4)
     // ########
     if(chipIdMod4 == 0)
     {
-        row = nRows + row;
-        col = nCols + col;
+        row = (nRows - 1) - row;
+        col = (2*nCols - 1) - col;
     }
     else if(chipIdMod4 == 1)
+    {
+        row = (nRows - 1) - row;
+        col = (nCols - 1) - col;
+    }
+    else if(chipIdMod4 == 2)
     {
         row = nRows + row;
         col = col;
     }
-    else if(chipIdMod4 == 2)
-    {
-        row = nRows - 1 - row;
-        col = nCols - 1 - col;
-    }
     else if(chipIdMod4 == 3)
     {
-        row = nRows - 1 - row;
-        col = nCols + nCols - 1 - col;
+        row = nRows + row;
+        col = nCols + col;
     }
 }
 
