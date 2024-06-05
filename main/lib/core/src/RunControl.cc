@@ -268,7 +268,7 @@ namespace eudaq {
       }
       while(1){
 	auto st = GetConnectionStatus(conn)->GetState();
-	if(st == Status::STATE_CONF){
+	if(st == Status::STATE_CONF || st == Status::STATE_STOPPED){
 	  if(std::chrono::steady_clock::now()>tp_timeout){
 	    EUDAQ_ERROR("Timesout waiting running status from "+ conn->GetName());
 	  }
