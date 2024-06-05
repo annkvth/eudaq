@@ -293,10 +293,11 @@ void RootMonitor::DoReceive(eudaq::EventSP evsp) {
         _colls.at(i)->Fill(simpEv);
 
       // CollType is used to check which kind of Collection we are having
-      if (_colls.at(i)->getCollectionType()==HITMAP_COLLECTION_TYPE) // Calculate is only implemented for HitMapCollections
+/*      if (_colls.at(i)->getCollectionType()==HITMAP_COLLECTION_TYPE) // Calculate is only implemented for HitMapCollections
         {
           _colls.at(i)->Calculate(stdev->GetEventNumber());
         }
+	*/
     }
 
   onlinemon->setEventNumber(stdev->GetEventNumber());
