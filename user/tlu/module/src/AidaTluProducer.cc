@@ -344,7 +344,7 @@ void AidaTluProducer::DoStatus() {
     SetStatusTag("IDTrig", std::to_string(post));
     SetStatusTag("Freq. (avg.) [kHz]", std::to_string(post/m_duration/1000));
     SetStatusTag("Run duration [s]", std::to_string(m_duration));
-    SetStatusTag("Particles", std::to_string(pret));
+    SetStatusTag("Particles\n", std::to_string(pret));
     SetStatusTag("Scaler", std::to_string(sl0) + ":" + std::to_string(sl1) + ":" + std::to_string(sl2) + ":" + std::to_string(sl3) + ":" + std::to_string(sl4) + ":" + std::to_string(sl5));
   }
 }
