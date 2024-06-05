@@ -185,6 +185,19 @@ void AidaTluProducer::DoInitialise(){
         EUDAQ_ERROR("TLU: clock configuration failed.");
       }
     }
+    
+    // Enable HDMI connectors
+    if(m_verbose > 0) EUDAQ_INFO(" -DUT CONFIGURATION");
+
+    // Enable HDMI power 
+    m_tlu->enableHDMIPower(1, 1, m_verbose);
+    m_tlu->enableHDMIPower(2, 1, m_verbose);
+    m_tlu->enableHDMIPower(3, 1, m_verbose);
+    m_tlu->enableHDMIPower(4, 1, m_verbose);
+
+    //Set lemo clock
+    if(m_verbose > 0) EUDAQ_INFO(" -CLOCK OUTPUT CONFIGURATION");
+    m_tlu->enableClkLEMO(ini->Get("LEMOclk", true), m_verbose);
 
     // Reset IPBus registers
     m_tlu->ResetSerdes();
@@ -219,12 +232,6 @@ void AidaTluProducer::DoConfigure() {
     m_tlu->configureHDMI(2, conf->Get("HDMI2_set", 0b0001), m_verbose);
     m_tlu->configureHDMI(3, conf->Get("HDMI3_set", 0b0001), m_verbose);
     m_tlu->configureHDMI(4, conf->Get("HDMI4_set", 0b0001), m_verbose);
-
-    // Enable HDMI power 
-    m_tlu->enableHDMIPower(1, 1, m_verbose);
-    m_tlu->enableHDMIPower(2, 1, m_verbose);
-    m_tlu->enableHDMIPower(3, 1, m_verbose);
-    m_tlu->enableHDMIPower(4, 1, m_verbose);
 
     // Select clock to HDMI
     m_tlu->SetDutClkSrc(1, conf->Get("HDMI1_clk", 1), m_verbose);
