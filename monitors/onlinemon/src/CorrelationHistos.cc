@@ -111,6 +111,11 @@ CorrelationHistos::CorrelationHistos(SimpleStandardPlane p1,
     m_pitchX1=74.5;
     m_pitchY1=74.5;
   }
+  if(!_sensor1.find("RD53") != std::string::npos ){
+    m_pitchX1=100;
+    m_pitchY1=25;
+  }
+
 
   if(_sensor2=="MIMOSA26"){
     m_pitchX2=18.4;
@@ -123,6 +128,10 @@ CorrelationHistos::CorrelationHistos(SimpleStandardPlane p1,
   if(!_sensor2.compare(0,3,"ABC")){
     m_pitchX2=74.5;
     m_pitchY2=74.5;
+  }
+  if(!_sensor2.find("RD53") != std::string::npos ){
+    m_pitchX2=100;
+    m_pitchY2=25;
   }
 
   if (_maxX1 != -1 && _maxX2 != -1) {
