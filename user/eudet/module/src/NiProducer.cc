@@ -56,7 +56,7 @@ void NiProducer::RunLoop(){
       uint16_t tg_l15 = 0x7fff & (mimosa_data_0[6] + (mimosa_data_0[7]<<8));
       if(tg_l15 < last_tg_l15 && last_tg_l15>0x6000 && tg_l15<0x2000){
 	tg_h17++;
-	EUDAQ_INFO("increase high 17bits of trigger number, last_tg_l15("+ 
+	EUDAQ_EXTRA("increase high 17bits of trigger number, last_tg_l15("+ 
 		   std::to_string(last_tg_l15)+") tg_l15("+ 
 		   std::to_string(tg_l15)+")" );
       }
