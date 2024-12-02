@@ -186,7 +186,7 @@ void RootMonitor::DoReceive(eudaq::EventSP evsp) {
   }
 
   if(ev_plane_c != m_plane_c){
-    std::cout<< "Event #"<< evsp->GetEventN()<< " has "<<ev_plane_c<<" plane(s), while we expect "<< m_plane_c <<" plane(s).  (Event is skipped)" <<std::endl;
+    //std::cout<< "Event #"<< evsp->GetEventN()<< " has "<<ev_plane_c<<" plane(s), while we expect "<< m_plane_c <<" plane(s).  (Event is skipped)" <<std::endl;
     return;
   }
     
@@ -317,7 +317,8 @@ void RootMonitor::DoStopRun()
   m_ev_rec_n = 0;
 
   if (_writeRoot)
-  {
+  { 
+	std::cout << ">>> Will write ROOT file to " << rootfilename << std::endl;
     TFile *f = new TFile(rootfilename.c_str(),"RECREATE");
     for (unsigned int i = 0 ; i < _colls.size(); ++i)
     {
