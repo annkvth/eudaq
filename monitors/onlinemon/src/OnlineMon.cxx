@@ -326,6 +326,8 @@ void RootMonitor::DoStopRun()
     f->Close();
   }
   onlinemon->UpdateStatus("Run stopped");
+  if(exit_at_run_end)
+	  DoTerminate();
 }
 
 void RootMonitor::DoStartRun() {
@@ -364,6 +366,10 @@ void RootMonitor::SetSnapShotDir(string s)
   snapshotdir=s;
 }
 
+void RootMonitor::setExitAtRunEnd(bool e)
+{
+  exit_at_run_end=e;
+}
 
 //gets the location for the snapshots
 string RootMonitor::GetSnapShotDir()const{
@@ -414,6 +420,7 @@ int main(int argc, const char ** argv) {
   eudaq::Option<std::string>     monitorname(op, "t", "monitor_name","StdEventMonitor", "StdEventMonitor","Name for onlinemon");	
   eudaq::OptionFlag do_rootatend (op, "rf","root","Write out root-file after each run");
   eudaq::OptionFlag do_resetatend (op, "rs","reset","Reset Histograms when run stops");
+  eudaq::OptionFlag exit_at_run_end (op, "ex", "exit_at_run_end", "Exit monitor when run is finished (i.e. when root file is written)");
   
   try {
     op.Parse(argv);
@@ -441,6 +448,7 @@ int main(int argc, const char ** argv) {
   mon.setCorr_width(corr_width.Value());
   mon.setCorr_planes(corr_planes.Value());
   mon.setUseTrack_corr(track_corr.Value());
+  mon.setExitAtRunEnd(exit_at_run_end.IsSet());
   eudaq::Monitor *m = dynamic_cast<eudaq::Monitor*>(&mon);
   std::future<uint64_t> fut_async_rd;
 

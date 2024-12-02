@@ -61,6 +61,7 @@ public:
   void setUseTrack_corr(const bool t_c);
   void setTracksPerEvent(const unsigned int tracks);
   void SetSnapShotDir(string s);
+  void setExitAtRunEnd(const bool e);
 
   bool getUseTrack_corr() const;
   unsigned int getTracksPerEvent() const;
@@ -90,6 +91,7 @@ private:
   unsigned int tracksPerEvent;
   uint32_t m_plane_c;
   uint32_t m_ev_rec_n = 0;
+  bool exit_at_run_end = false;
 };
 
 #ifdef __CINT__
