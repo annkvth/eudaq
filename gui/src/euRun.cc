@@ -581,7 +581,7 @@ void RunControlGUI::on_btnStartScan_clicked()
    if(m_scan_active == true){
        QMessageBox::StandardButton reply;
        reply = QMessageBox::question(NULL,"Interrupt Scan","Do you want to stop immediately?\n Hitting no will stop after finishing the current step",
-                                     QMessageBox::Yes|QMessageBox::No|QMessageBox::Abort);
+                                     QMessageBox::Yes|QMessageBox::No|QMessageBox::Abort);//|QMessageBox::Retry);
        if(reply==QMessageBox::Yes) {
            m_scan_active = false;
            m_scanningTimer.stop();
@@ -593,6 +593,10 @@ void RunControlGUI::on_btnStartScan_clicked()
        } else if(reply==QMessageBox::No) {
            m_scan_interrupt_received = true;
            btnStartScan->setText("Scan stops after current step");
+       } else if(reply==QMessageBox::Retry) {
+	  m_scan_active = true;
+	  m_scan.flagStepToBeRepeated();
+	  nextStep();
        }
    } else {
        if(!readScanConfig())

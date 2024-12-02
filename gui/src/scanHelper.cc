@@ -187,7 +187,10 @@ void Scan::reset() {
 }
 
 std::string Scan::nextConfig() {
-    m_current_step++;
+    if (!m_repeat_step)
+    	m_current_step++;
+    m_repeat_step = false;
+
     if(m_current_step>m_config_files.size() && !m_repeatScans)
         return "finished";
     else return m_config_files.at((m_current_step-1)%(m_config_files.size()));

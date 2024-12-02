@@ -100,6 +100,8 @@ public:
      */
     void scanStarted() {m_first_step_done = true;}
 
+    void flagStepToBeRepeated() {m_repeat_step = true;}
+
 
 private:
 
@@ -142,6 +144,7 @@ private:
     bool m_scan_is_time_based = true;
     bool m_repeatScans = false;
     bool m_first_step_done = false;
+    bool m_repeat_step = false;
     int m_time_per_step = 0;
     int m_events_per_step = 0;
     std::vector<int> m_steps_per_scan;
