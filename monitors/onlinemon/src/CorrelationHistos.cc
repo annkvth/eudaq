@@ -112,8 +112,8 @@ CorrelationHistos::CorrelationHistos(SimpleStandardPlane p1,
     m_pitchY1=74.5;
   }
   if(!_sensor1.find("RD53") != std::string::npos ){
-    m_pitchX1=100;
-    m_pitchY1=25;
+    m_pitchX1=50;
+    m_pitchY1=50;
   }
 
 
@@ -223,10 +223,10 @@ void CorrelationHistos::FillCorrVsTime(const SimpleStandardCluster &cluster1,
 	  //std::cout << "pitchY2: " << m_pitchY2 << std::endl;
 	  //std::cout << "pitchX1: " << m_pitchX1 << std::endl;
 	  //std::cout << "pitchY2/pitchX1: " << m_pitchY2/m_pitchX1 << std::endl;
-    _2dcorrTimeXY->Fill(simpev.getEvent_number(),  cluster1.getX()-cluster2.getY()*m_pitchX2/m_pitchX1);
+    _2dcorrTimeXY->Fill(simpev.getEvent_number(),  cluster1.getX()-cluster2.getY()*m_pitchY2/m_pitchX1);
   }
   if (_2dcorrTimeYX != NULL){
-    _2dcorrTimeYX->Fill(simpev.getEvent_number(), cluster1.getY()-cluster2.getX()*m_pitchY2/m_pitchY1);
+    _2dcorrTimeYX->Fill(simpev.getEvent_number(), cluster1.getY()-cluster2.getX()*m_pitchX2/m_pitchY1);
   }  
 
 }
