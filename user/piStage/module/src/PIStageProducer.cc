@@ -16,6 +16,7 @@ class PIStageProducer : public eudaq::Producer {
   void DoConfigure() override;
   void DoStartRun() override;
   void DoStopRun() override;
+  void DoStatus() override;
   void DoTerminate() override;
   void DoReset() override;
   void RunLoop() override;
@@ -136,10 +137,28 @@ void PIStageProducer::DoConfigure(){
   if(pRot == -10000 && m_connected_Rot)
          EUDAQ_THROW("No movement position given for Rot");
 
+ 
   if(m_connected_X)     if(!m_controller->move(m_axis_X.c_str(),pX,servoX)) EUDAQ_THROW("X Movement failed");
   if(m_connected_Y)     if(!m_controller->move(m_axis_Y.c_str(),pY,servoY)) EUDAQ_THROW("Y Movement failed");
   if(m_connected_Rot)   if(!m_controller->move(m_axis_Rot.c_str(),pRot,servoRot)) EUDAQ_THROW("Rotation Movement failed");
 
+
+    
+}
+
+
+void PIStageProducer::DoStatus(){
+/*
+//  if(m_connected_X)     xReadout = m_controller->getPosition(m_axis_X.c_str(),actualX);
+ // if(m_connected_Y)     yReadout = m_controller->getPosition(m_axis_X.c_str(),actualY);
+  //if(m_connected_Rot)   xReadout = m_controller->getPosition(m_axis_Rot.c_str(),actualRot);
+
+  bool ok;
+  double pos;  
+  if(m_connected_X) SetStatusTag("Xpos", m_controller->getPosition(m_axis_X.c_str(), pos) ? std::to_string(pos) : "FAILED");
+  if(m_connected_Y) SetStatusTag("Ypos", m_controller->getPosition(m_axis_Y.c_str(), pos) ? std::to_string(pos) : "FAILED");
+  if(m_connected_Rot) SetStatusTag("Angle", m_controller->getPosition(m_axis_Rot.c_str(), pos) ? std::to_string(pos) : "FAILED");
+  */
 }
 
 void PIStageProducer::DoStartRun(){

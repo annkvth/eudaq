@@ -51,6 +51,8 @@ public:
   void ConnectionError(std::ostream&, const char *errorMessage);
   void LogInfo(std::ostream&, std::string infoMessage);
   void LogInfo(std::ostream&, const char *infoMessage);
+  bool getPosition(const char *szAxis, double &position);
+
 
   std::ostream* defaulterrorstream = &std::cout;
   std::ostream* defaultlogstream = &std::cout;

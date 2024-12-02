@@ -356,6 +356,18 @@ double RotaController::getMaxLimit(const char *Axis)
     return *travelMax;
 }
 
+
+bool RotaController::getPosition(const char *szAxis, double &position)
+{
+    if (!PI_qPOS(ID, szAxis, &position))
+    {
+        SoftError(std::string("qPOS failed  : Could not get current position of Axis ") + std::string(szAxis));
+        return false;
+    }
+    return true;
+}
+    
+
 bool RotaController::move(const char *szAxis, double target, bool keepServoOn)
 {
     BOOL servoState = TRUE;               //uppercase because it comes from hardware (gcs) library
