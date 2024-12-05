@@ -65,7 +65,11 @@ void Ex0Producer::DoConfigure(){
     m_flag_ts = false;
     m_flag_tg = true;
   }
+
+  //std::this_thread::sleep_for(std::chrono::seconds(180));
+  
 }
+
 //----------DOC-MARK-----BEG*RUN-----DOC-MARK----------
 void Ex0Producer::DoStartRun(){
   m_exit_of_run = false;

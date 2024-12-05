@@ -63,6 +63,7 @@ private:
 
   bool readScanConfig();
   bool allConnectionsInState(eudaq::Status::State state);
+  bool allConnectionsAtLeastInState(eudaq::Status::State state);
   bool checkEventsInStep();
   int getEventsCurrent();
   void store_config();
@@ -81,6 +82,7 @@ private:
   eudaq::LogSender m_log;
   bool m_scan_active;
   bool m_scan_interrupt_received;
+  bool m_scan_single_interrupt_received;
   bool m_save_config_at_run_start;
   QTimer m_scanningTimer;
   std::shared_ptr<eudaq::Configuration> m_scan_config;

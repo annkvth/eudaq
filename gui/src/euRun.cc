@@ -338,9 +338,9 @@ std::map<int, QString> RunControlGUI::m_map_state_str ={
     {eudaq::Status::STATE_STOPPED,
      "<font size=12 color='blue'><b>Current State: Stopped </b></font>"},
     {eudaq::Status::STATE_RUNNING,
-     "<font size=12 color='green'><b>Current State: Running </b></font>"},
+     "<b><font size=12 color='green'><b>Current State: Running </font><font size=12 color='orange'>If not, KILL 703 WITH FIRE!</font></b>"},
     {eudaq::Status::STATE_ERROR,
-     "<font size=12 color='darkred'><b>Current State: Error </b></font>"}
+     "<font size=12 color='darkred'><b>Current State: Look what mess you've made </b></font>"}
 };
 
 
@@ -580,9 +580,10 @@ void RunControlGUI::on_btnStartScan_clicked()
 {
    if(m_scan_active == true){
        QMessageBox::StandardButton reply;
-       reply = QMessageBox::question(NULL,"Interrupt Scan","Do you want to stop immediately?\n Hitting no will stop after finishing the current step",
-                                     QMessageBox::Yes|QMessageBox::No|QMessageBox::Abort);//|QMessageBox::Retry);
-       if(reply==QMessageBox::Yes) {
+       reply = QMessageBox::question(NULL,"Interrupt Scan","Do you want to stop immediately?\n Hitting no will stop after finishing the current step,\n retry interrupts this run and moves on :lennart-face-palm:",
+                                     QMessageBox::Yes|QMessageBox::No|QMessageBox::Abort|QMessageBox::Retry);
+       //      if(reply==QMessageBox::
+	 if(reply==QMessageBox::Yes) {
            m_scan_active = false;
            m_scanningTimer.stop();
            nextStep();
@@ -595,7 +596,8 @@ void RunControlGUI::on_btnStartScan_clicked()
            btnStartScan->setText("Scan stops after current step");
        } else if(reply==QMessageBox::Retry) {
 	  m_scan_active = true;
-	  m_scan.flagStepToBeRepeated();
+	  m_scanningTimer.stop();
+	  //m_scan.flagStepToBeRepeated();
 	  nextStep();
        }
    } else {
@@ -642,7 +644,59 @@ void RunControlGUI::nextStep()
             std::cout << "Waiting until all components are stopped"<<std::endl;
         }
 
-        updateInfos();
+	// /// ASV test 202411 see if we can also reset and re-initialise just a single one
+	std::string thebadname = std::string("pd0");
+	std::map<eudaq::ConnectionSPC, eudaq::StatusSPC> map_conn_status;
+	if(m_rc){
+	  map_conn_status= m_rc->GetActiveConnectionStatusMap();
+	}
+	for(auto &conn_st: map_conn_status){
+	  auto &conn = conn_st.first;
+	  if(conn->GetType()== "Producer" && conn->GetName().find(thebadname) != std::string::npos) {
+	    // I found the bad guy I'm looking for
+	    auto st = conn_st.second->GetState();
+	    std::cout << "I will now reset the bad guy " << conn->GetName() <<std::endl;
+	    
+	    m_rc->ResetSingleConnection(conn_st.first);
+	  }
+	}
+
+	updateInfos();
+        std::this_thread::sleep_for (std::chrono::seconds(3));
+	if(m_rc){
+	  map_conn_status= m_rc->GetActiveConnectionStatusMap();
+	}	
+	while(!allConnectionsAtLeastInState(eudaq::Status::STATE_UNINIT) && m_scan_active){
+	  updateInfos();
+	  QCoreApplication::processEvents();
+	  std::this_thread::sleep_for (std::chrono::seconds(1));
+	  std::cout << "Waiting until all components are at least ready to be initialised"<<std::endl;
+	}
+
+	for(auto &conn_st: map_conn_status){
+	  auto &conn = conn_st.first;
+	  if(conn->GetType()== "Producer" && conn->GetName().find(thebadname) != std::string::npos) {
+	    // I found the bad guy I'm looking for
+	    auto st = conn_st.second->GetState();
+	    std::cout << "I will now init the bad guy " << conn->GetName() <<std::endl;
+	    
+	    m_rc->InitialiseSingleConnection(conn_st.first);
+	  }
+	}
+
+	updateInfos();
+        std::this_thread::sleep_for (std::chrono::seconds(3));
+	if(m_rc){
+	  map_conn_status= m_rc->GetActiveConnectionStatusMap();
+	}	
+	while(!allConnectionsAtLeastInState(eudaq::Status::STATE_UNCONF) && m_scan_active){
+	  updateInfos();
+	  QCoreApplication::processEvents();
+	  std::this_thread::sleep_for (std::chrono::seconds(1));
+	  std::cout << "Waiting until all components are at least ready to be configured"<<std::endl;
+	}
+
+	updateInfos();
         std::this_thread::sleep_for (std::chrono::seconds(3));
         on_btnConfig_clicked();
         while(!allConnectionsInState(eudaq::Status::STATE_CONF) && m_scan_active){
@@ -651,7 +705,8 @@ void RunControlGUI::nextStep()
             std::this_thread::sleep_for (std::chrono::seconds(1));
             std::cout << "Waiting until all components are (re)configured"<<std::endl;
         }
-        updateInfos();
+
+	updateInfos();
         std::cout << "Ready for next step"<<std::endl;
 
         on_btnStart_clicked();
@@ -712,6 +767,28 @@ bool RunControlGUI::allConnectionsInState(eudaq::Status::State state){
 
         }
         if((int)state_conn != (int)state)
+            return false;
+    }
+    return true;
+}
+
+/**
+ * @brief RunControlGUI::allConnectionsInState
+ * @param state to be checked
+ * @return true if all connections are in state, false otherwise
+ */
+bool RunControlGUI::allConnectionsAtLeastInState(eudaq::Status::State state){
+    std::map<eudaq::ConnectionSPC, eudaq::StatusSPC> map_conn_status;
+    if(m_rc)
+      map_conn_status= m_rc->GetActiveConnectionStatusMap();
+    else
+        return false;
+    for(auto &conn_status: map_conn_status){
+        if(!conn_status.second)
+            continue;
+        auto state_conn = conn_status.second->GetState();
+
+        if((int)state > (int)state_conn)
             return false;
     }
     return true;
