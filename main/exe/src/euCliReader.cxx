@@ -16,6 +16,7 @@ int main(int /*argc*/, const char **argv) {
   eudaq::Option<uint32_t> timestamph(op, "TS", "timestamphigh", 0, "uint32_t", "timestamp high");
   eudaq::OptionFlag stat(op, "s", "statistics", "enable print of statistics");
   eudaq::OptionFlag stdev(op, "std", "stdevent", "enable converter of StdEvent");
+  eudaq::OptionFlag bianca(op, "b", "bianca", "a thing for biancas testbeam 2024");
 
   op.Parse(argv);
   std::string infile_path = file_input.Value();
@@ -25,7 +26,9 @@ int main(int /*argc*/, const char **argv) {
 
   bool stdev_v = stdev.Value();
   bool stat_v = stat.Value();
-
+  bool bianca_v = bianca.Value();
+  if (bianca_v)
+    stat_v = true;
 
   uint32_t eventl_v = eventl.Value();
   uint32_t eventh_v = eventh.Value();
@@ -61,6 +64,9 @@ int main(int /*argc*/, const char **argv) {
   std::map<uint32_t,std::string> device_list;
   uint32_t tgn_low = std::numeric_limits<uint32_t>::max();
   uint32_t tgn_high = 0;
+  std::map<uint32_t,uint32_t> low_list;
+  std::map<uint32_t,uint32_t> high_list;
+  std::map<uint32_t,uint32_t> nogood;
   
   while(1){
     auto ev = reader->GetNextEvent();
@@ -111,12 +117,49 @@ int main(int /*argc*/, const char **argv) {
       auto ev_sub_evts = ev->GetSubEvents();
       for (auto subev : ev_sub_evts){
         uint32_t stg_n = subev->GetTriggerN();
+	uint32_t s_stream_n = subev->GetStreamN();
+        // emplace only inserts if key does not exist yet
+        device_list.emplace(s_stream_n, subev->GetDescription());
         if (stg_n>=0 && stg_n<tgn_low)
-	  tgn_low=stg_n;
+	  tgn_low=stg_n;	
         if (stg_n>=0 && stg_n>tgn_high)
 	  tgn_high=stg_n;
-        // emplace only inserts if key does not exist yet
-        device_list.emplace(subev->GetStreamN(), subev->GetDescription());
+
+	if(bianca_v){	    
+	  // c++17 - insert_or_assign clobbers existing ones
+	  try {
+	    uint32_t lastlow = low_list.at(s_stream_n);
+	    if (stg_n>=0 && stg_n<lastlow)
+	      low_list.insert_or_assign(s_stream_n, stg_n);
+	  }
+	  catch (const std::out_of_range&) {
+	    // std::cout << "No entry yet in low map for device stream number " << s_stream_n << std::endl;
+	    // then kick of the list with the current one
+	    low_list.insert_or_assign(s_stream_n, stg_n);
+	  }
+	  
+	  try {
+	    uint32_t lasthigh = high_list.at(s_stream_n);
+	    if (stg_n>=0 && stg_n>lasthigh)
+	      high_list.insert_or_assign(s_stream_n, stg_n);
+	  }
+	  catch (const std::out_of_range&) {
+	    //std::cout << "No entry yet in high map for device stream number " << s_stream_n << std::endl;
+	    high_list.insert_or_assign(s_stream_n, stg_n);
+	  }
+
+	  // now it get's extra hacky:
+	  // every device _should_ have trigger number almost equal event_number in cms tb december 24
+	  if (abs(subev->GetEventN() - stg_n) > 2){
+	    try {
+	      uint32_t firstnogood = nogood.at(s_stream_n);
+	    }
+	    catch (const std::out_of_range&) {
+	      // subtract 2 to be safe (aka I don't want to think about which offset they have...)
+	      nogood.emplace(s_stream_n, stg_n - 2);
+	    }	    
+	  }
+	}
       }
     }
     event_count ++;
@@ -130,6 +173,22 @@ int main(int /*argc*/, const char **argv) {
     for (const auto& device : device_list){
       std::cout << device.first << " => " << device.second << std::endl;
     }
+  }
+  if(bianca_v){
+    std::cout<< "Lowest trigger number of device:" <<std::endl;    
+    for (const auto& low : low_list){
+      std::cout << low.first << " => " << low.second << std::endl;
+    }    
+    std::cout<< "Highest trigger number of device:" <<std::endl;    
+    for (const auto& high : high_list){
+      std::cout << high.first << " => " << high.second << std::endl;
+    }    
+    for (const auto& nope : nogood){
+      if (nope.second != 0){
+	std::cout<< "This is where it breaks:" <<std::endl;    
+	std::cout << nope.first << " => " << nope.second << std::endl;
+      }
+    }    
   }
   
   return 0;
