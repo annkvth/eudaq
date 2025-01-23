@@ -24,6 +24,7 @@ int main(int /*argc*/, const char **argv) {
     type_in = "native";
 
   bool stdev_v = stdev.Value();
+  bool stat_v = stat.Value();
 
 
   uint32_t eventl_v = eventl.Value();
@@ -56,7 +57,14 @@ int main(int /*argc*/, const char **argv) {
   eudaq::FileReaderUP reader;
   reader = eudaq::Factory<eudaq::FileReader>::MakeUnique(eudaq::str2hash(type_in), infile_path);
   uint32_t event_count = 0;
+  // for the gathering of statistics - initialise with end-of-range values
+  std::map<uint32_t,std::string> device_list;
+  uint32_t tgn_low = std::numeric_limits<uint32_t>::max();
+  uint32_t tgn_high = 0;
 
+  uint64_t tlu_ts_low = std::numeric_limits<uint32_t>::max();
+  uint64_t tlu_ts_high = 0;
+  
   while(1){
     auto ev = reader->GetNextEvent();
     if(!ev)
@@ -102,8 +110,52 @@ int main(int /*argc*/, const char **argv) {
       }
     }
 
+    if(stat_v){
+      // emplace only inserts if key does not exist yet
+      device_list.emplace(ev->GetStreamN(), ev->GetDescription());	
+      uint64_t ets_beg = ev->GetTimestampBegin();
+      uint64_t ets_end = ev->GetTimestampEnd();
+      if ("TluRawDataEvent" == ev->GetDescription()){
+	if (ets_beg>=0 && ets_beg<tlu_ts_low)
+	  tlu_ts_low=ets_beg;
+	if (ets_end>0 && ets_end>tlu_ts_high)
+	  tlu_ts_high=ets_end;
+      }
+      auto ev_sub_evts = ev->GetSubEvents();
+      for (auto subev : ev_sub_evts){
+        uint32_t stg_n = subev->GetTriggerN();
+        if (stg_n>=0 && stg_n<tgn_low)
+	  tgn_low=stg_n;
+        if (stg_n>=0 && stg_n>tgn_high)
+	  tgn_high=stg_n;
+        // emplace only inserts if key does not exist yet
+        device_list.emplace(subev->GetStreamN(), subev->GetDescription());	
+	uint64_t sts_beg = subev->GetTimestampBegin();
+	uint64_t sts_end = subev->GetTimestampEnd();
+	if ("TluRawDataEvent" == subev->GetDescription()){
+	  if (sts_beg>=0 && sts_beg<tlu_ts_low)
+	    tlu_ts_low=sts_beg;
+	  if (sts_end>0 && sts_end>tlu_ts_high)
+	    tlu_ts_high=sts_end;
+	}
+      }
+    }
     event_count ++;
   }
-  std::cout<< "There are "<< event_count << "Events"<<std::endl;
+  std::cout<< "There are "<< event_count << " events"<<std::endl;
+
+  if(stat_v){
+    if (tgn_low!=std::numeric_limits<uint32_t>::max() && tgn_high!=0)
+      std::cout<< "Trigger numbers found from "<< tgn_low << " to " << tgn_high <<std::endl;
+    std::cout<< "Devices found:" <<std::endl;    
+    for (const auto& device : device_list){
+      std::cout << device.first << " => " << device.second << std::endl;
+      if ("TluRawDataEvent" == device.second){
+	std::cout << "timestamps from TLU: " << tlu_ts_low << " - " << tlu_ts_high;
+	std::cout << " (in seconds: " << tlu_ts_low*0.78125e-9 << " - " << tlu_ts_high*0.78125e-9 << " )" << std::endl;
+      }
+    }
+  }
+  
   return 0;
 }
