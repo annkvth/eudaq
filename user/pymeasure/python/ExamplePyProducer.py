@@ -22,13 +22,26 @@ class ExamplePyProducer(pyeudaq.Producer):
     @exception_handler
     def DoInitialise(self):        
         EUDAQ_INFO('DoInitialise')
-        #print 'key_a(init) = ', self.GetInitItem("key_a")
+        iniList=self.GetInitConfiguration().as_dict()
+        if 'key_a' in iniList:
+            initA=iniList['key_a']
+            print(f'key_a(init) = {initA}')
+        if 'key_b' in iniList:
+            initB=iniList['key_b']
+            print(f'key_b(init) = {initB}')
 
     @exception_handler
     def DoConfigure(self):        
         EUDAQ_INFO('DoConfigure')
-        #print 'key_b(conf) = ', self.GetConfigItem("key_b")
+        confList = self.GetConfiguration().as_dict()
+        if 'key_a' in confList:
+            confA=confList['key_a']
+            print(f'key_a(conf) = {confA}')
+        if 'key_b' in confList:
+            confB=conf['key_b']
+            print(f'key_b(conf) = {confB}')
 
+        
     @exception_handler
     def DoStartRun(self):
         EUDAQ_INFO('DoStartRun')

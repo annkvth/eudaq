@@ -28,14 +28,31 @@ class KeithleyPyProducer(pyeudaq.Producer):
 
     @exception_handler
     def DoInitialise(self):        
-        conf = self.GetInitConfiguration().as_dict()
-        self.ip = conf['IPaddress']
-        print(f'IPaddress = {self.ip}')
+        iniList=self.GetInitConfiguration().as_dict()
+        if 'key_a' in iniList:
+            initA=iniList['key_a']
+            print(f'key_a(init) = {initA}')
+        # let's not do an if-in-list check - it should be there!
+        # else I want to crash (until I imprement proper exceptions...)
+        self.ip = iniList['IPaddress']
+        print(f'Keithley IPaddress = {self.ip}')
+        self.sourcemeter = Keithley2450(f'TCPIP::{self.ip}::inst0::INSTR')
+        keithley.source_current_range = 200
+        self.sourcemeter.compliance_current = 50e-6
+        self.sourcemeter.source_voltage_range = 200
 
     @exception_handler
     def DoConfigure(self):        
         EUDAQ_INFO('DoConfigure')
-        #print 'key_b(conf) = ', self.GetConfigItem("key_b")
+        confList = self.GetConfiguration().as_dict()
+        self.bias = confList['bias']
+        if bias > 0:
+            print("Don't kill the LGAD!")
+        else:
+            self.sourcemeter.enable_source()
+            print(f'Keithley set to {self.bias} V')
+            #target voltage, steps, pause-in-seconds
+            self.ramp_to_voltage(self.bias, 30, 0.5) 
 
     @exception_handler
     def DoStartRun(self):
@@ -59,16 +76,8 @@ class KeithleyPyProducer(pyeudaq.Producer):
         while(self.is_running):
             ev = pyeudaq.Event("RawEvent", "sub_name")
             ev.SetTriggerN(trigger_n)
-            #block = bytes(r'raw_data_string')
-            #ev.AddBlock(0, block)
-            #print ev
-            # Mengqing:
-            datastr = 'raw_data_string'
-            block = bytes(datastr, 'utf-8')
-            ev.AddBlock(0, block)
-            print(ev)
-            
-            self.SendEvent(ev)
+            self.sourcemeter.measure_current()
+            print(f'{self.sourcemeter.voltage}V {self.sourcemeter.current * 1e6}uA')
             trigger_n += 1
             time.sleep(1)
         EUDAQ_INFO("End of RunLoop in KeithleyPyProducer")
@@ -76,7 +85,8 @@ class KeithleyPyProducer(pyeudaq.Producer):
 if __name__ == "__main__":
     import argparse
     parser=argparse.ArgumentParser(description='Power Producer',formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument('--run-control' ,'-r',default='tcp://localhost:44123')
+    parser.add_argument('--run-control' ,'-r',default='tcp://localhost:44000')
+#    parser.add_argument('--run-control' ,'-r',default='tcp://localhost:44123')
     parser.add_argument('--name' ,'-n',default='KeithleyProducer')
     args=parser.parse_args()
 
