@@ -4,7 +4,9 @@ import pyeudaq
 from pyeudaq import EUDAQ_INFO, EUDAQ_ERROR
 import time
 from datetime import datetime
-from pymeasure.instruments.keithley import Keithley2450
+#from pymeasure.instruments.keithley import Keithley2450
+import numpy as np
+import socket
 import threading
 
 def exception_handler(method):
@@ -22,7 +24,7 @@ class KeithleyPyProducer(pyeudaq.Producer):
         self.name = name
         self.ip=None
         self.is_running = 0
-        self.sourcemeter=None
+        self.keithley=None
         self.lock=threading.Lock()
         EUDAQ_INFO('New instance of KeithleyPyProducer')
 
@@ -36,24 +38,63 @@ class KeithleyPyProducer(pyeudaq.Producer):
         # else I want to crash (until I imprement proper exceptions...)
         self.ip = iniList['IPaddress']
         print(f'Keithley IPaddress = {self.ip}')
-        self.sourcemeter = Keithley2450(f'TCPIP::{self.ip}::inst0::INSTR')
-        keithley.source_current_range = 200
-        self.sourcemeter.compliance_current = 50e-6
-        self.sourcemeter.source_voltage_range = 200
+
+        # could also make these ini parameter in the future
+        self.compliance_current = 20e-6
+        self.source_voltage_range = 200
+        self.update_every = 30
+        
+        self.keithley = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.keithley.connect((self.ip, 5025))
+        self.keithley.sendall('*IDN?\n'.encode())
+        time.sleep(0.01)   
+        self.keithley.sendall((f'SOUR:VOLT:RANG {self.souce_voltage_rage}\n').encode())
+        time.sleep(0.01)   
+        print((keithley.recv(1024)).decode())
+
+        self.keithley.sendall((f':SOUR:VOLT:ILIM {self.compliance_current}\n').encode())
+        time.sleep(0.01)   
+        self.keithley.sendall('SOUR:FUNC VOLT\n'.encode())
+        time.sleep(0.01)       
+        self.keithley.sendall('SENS:FUNC "CURR"\n'.encode())
+        time.sleep(0.01)
+        self.keithley.sendall('SENS:CURR:RANG:AUTO ON\n'.encode())
+        time.sleep(0.01)        
+        self.keithley.sendall(':OUTP ON\n'.encode())
+        time.sleep(0.01)
 
     @exception_handler
     def DoConfigure(self):        
         EUDAQ_INFO('DoConfigure')
         confList = self.GetConfiguration().as_dict()
-        self.bias = confList['bias']
+        self.vtarget = confList['bias']
         if bias > 0:
             print("Don't kill the LGAD!")
         else:
-            self.sourcemeter.enable_source()
-            print(f'Keithley set to {self.bias} V')
-            #target voltage, steps, pause-in-seconds
-            self.ramp_to_voltage(self.bias, 30, 0.5) 
+            print(f'Keithley set to {self.vtarget} V')
+            #could also be parameters: steps, pause-in-seconds
+            nsteps = 10
+            steppause=2.0
+            # get current voltage and ramp to there
+            self.keithley.sendall(':MEAS:VOLT? "voltMeas"\n'.encode())
+            vmeas =int(float((keithley.recv(1024)).decode())) 
+            stepsize=(self.vtarget - vmeas)/nsteps
+            thesteps = np.arange(vmeas, self.vtarget+(stepsize*0.5), stepsize)
+            for step in thesteps:
+                self.keithley.sendall(('SOUR:VOLT {step}\n').encode())
+                time.sleep(steppause)  
+                self.keithley.sendall(':MEAS:VOLT? "voltMeas"\n'.encode())
+                volt=(float((keithley.recv(1024)).decode()))        
+                self.keithley.sendall(':MEAS:CURR? "currMeas"\n'.encode())
+                curr=(float((keithley.recv(1024)).decode()))
+                self.keithley.sendall(':MEAS? "defbuffer1", SEC\n'.encode())
+                t=(float((keithley.recv(1024)).decode()))
+                logline=f'{volt}V {curr*1e6}uA {t}s'
+                print(logline)
+            EUDAQ_INFO(logline)
 
+
+            
     @exception_handler
     def DoStartRun(self):
         EUDAQ_INFO('DoStartRun')
@@ -76,10 +117,17 @@ class KeithleyPyProducer(pyeudaq.Producer):
         while(self.is_running):
             ev = pyeudaq.Event("RawEvent", "sub_name")
             ev.SetTriggerN(trigger_n)
-            self.sourcemeter.measure_current()
-            print(f'{self.sourcemeter.voltage}V {self.sourcemeter.current * 1e6}uA')
+
+            time.sleep(self.update_every)
+            self.keithley.sendall(':MEAS:VOLT? "voltMeas"\n'.encode())
+            volt=(float((keithley.recv(1024)).decode()))        
+            self.keithley.sendall(':MEAS:CURR? "currMeas"\n'.encode())
+            curr=(float((keithley.recv(1024)).decode()))
+            self.keithley.sendall(':MEAS? "defbuffer1", SEC\n'.encode())
+            t=(float((keithley.recv(1024)).decode()))
+            logline=f'{volt}V {curr*1e6}uA {t}s'
+            EUDAQ_INFO(logline)
             trigger_n += 1
-            time.sleep(1)
         EUDAQ_INFO("End of RunLoop in KeithleyPyProducer")
 
 if __name__ == "__main__":
